@@ -19,27 +19,27 @@ public class Movie {
     @Column(name = "id", nullable = false)
     Integer id;
 
-    @Column(name="name_translated", nullable = false)
+    @Column(name = "name_translated", nullable = false)
     private String translatedName;
 
-    @Column(name="name_original", nullable = false)
+    @Column(name = "name_original", nullable = false)
     private String originalName;
 
-    @Column(name="release_date", nullable = false)
+    @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
 
-    @Column(name="description", nullable = false)
+    @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name="price", nullable = false)
+    @Column(name = "price", nullable = false)
     private Double price;
 
-    @Column(name="picture_path", nullable = false)
+    @Column(name = "picture_path", nullable = false)
     private String picturePath;
 
-    @Column(name="rating", nullable = false)
+    @Column(name = "rating", nullable = false)
     private Double rating;
 
-    @Column(name="votes", nullable = false)
+    @Column(name = "votes", nullable = false)
     private int votes;
 }

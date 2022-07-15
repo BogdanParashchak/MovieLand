@@ -18,4 +18,9 @@ public class MovieController {
     private List<Movie> findAllMovies() {
         return movieService.findAll();
     }
+
+    @GetMapping("/v1/movie/random")
+    private List<Movie> findRandomMovies() {
+        return movieService.findRandomMovies();
+    }
 }
