@@ -15,9 +15,15 @@ import java.time.LocalDate;
 public class Movie {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(
+            name = "movie_sequence_generator",
+            sequenceName = "movie_id_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "movie_sequence_generator")
     @Column(name = "id", nullable = false)
-    Integer id;
+    private Integer id;
 
     @Column(name = "name_translated", nullable = false)
     private String translatedName;
