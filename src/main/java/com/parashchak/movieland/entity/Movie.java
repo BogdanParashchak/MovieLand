@@ -22,7 +22,6 @@ public class Movie {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
             generator = "movie_sequence_generator")
-    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "name_translated", nullable = false)

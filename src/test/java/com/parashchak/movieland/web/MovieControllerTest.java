@@ -2,7 +2,7 @@ package com.parashchak.movieland.web;
 
 import com.parashchak.movieland.entity.Movie;
 import com.parashchak.movieland.exception.MoviesNotFoundException;
-import com.parashchak.movieland.service.MovieServiceImpl;
+import com.parashchak.movieland.service.MovieService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,7 +27,7 @@ public class MovieControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private MovieServiceImpl movieServiceImpl;
+    private MovieService movieService;
 
     @Test
     public void givenMovies_whenGetMovies_thenMoviesReturned() throws Exception {
@@ -54,7 +54,7 @@ public class MovieControllerTest {
                 .rating(7.6)
                 .build();
 
-        when(movieServiceImpl.findAll()).thenReturn(List.of(firstMockMovie, secondMockMovie));
+        when(movieService.findAll()).thenReturn(List.of(firstMockMovie, secondMockMovie));
 
         mockMvc.perform(get("/api/v1/movie")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,13 +82,13 @@ public class MovieControllerTest {
                         .value("https://en.wikipedia.org/wiki/File:Avatar_(2009_film)_poster.jpg"))
                 .andExpect(jsonPath("$.[1].rating").value(7.6));
 
-        verify(movieServiceImpl).findAll();
+        verify(movieService).findAll();
     }
 
     @Test
     public void givenNoMovies_whenGetMovies_thenNotFoundStatusReturned() throws Exception {
 
-        when(movieServiceImpl.findAll()).thenThrow(new MoviesNotFoundException());
+        when(movieService.findAll()).thenThrow(new MoviesNotFoundException());
 
         mockMvc.perform(get("/api/v1/movie")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,6 +97,6 @@ public class MovieControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(status().reason("Movies not found"));
 
-        verify(movieServiceImpl).findAll();
+        verify(movieService).findAll();
     }
 }

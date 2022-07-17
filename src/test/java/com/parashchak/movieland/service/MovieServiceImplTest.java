@@ -98,7 +98,7 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void givenListOfMovies_whenFindAll_thenMoviesNotFoundExceptionThrown() {
+    void givenListOfMovies_whenFindRandomMovies_thenThreeRandomMoviesReturned() {
 
         //prepare
         Movie fourthMockMovie = Movie.builder()
@@ -135,6 +135,17 @@ class MovieServiceImplTest {
         //then
         assertTrue(movies.containsAll(randomMovies));
         assertEquals(3, randomMovies.size());
+        verify(movieRepository).findAll();
+    }
+
+    @Test
+    void givenEmptyListOfMovies_whenFindRandomMovies_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Mockito.when(movieRepository.findAll()).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findRandomMovies());
         verify(movieRepository).findAll();
     }
 }
