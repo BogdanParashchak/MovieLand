@@ -17,7 +17,7 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
 
     @Override
-    public List<Movie> findAll() {
+    public List<Movie> findAllMovies() {
         List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()) {
             throw new MoviesNotFoundException();
@@ -27,8 +27,17 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public List<Movie> findRandomMovies() {
-        List<Movie> movies = findAll();
+        List<Movie> movies = findAllMovies();
         Collections.shuffle(movies);
         return movies.subList(0, RANDOM_MOVIES_COUNT);
+    }
+
+    @Override
+    public List<Movie> findMoviesByGenreId(int genreId) {
+        List<Movie> movies = movieRepository.findMoviesByGenreId(genreId);
+        if (movies.isEmpty()) {
+            throw new MoviesNotFoundException();
+        }
+        return movies;
     }
 }

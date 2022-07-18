@@ -15,7 +15,7 @@ public class GenreServiceImpl implements GenreService {
     private final GenreRepository genreRepository;
 
     @Override
-    public List<Genre> findAll() {
+    public List<Genre> findAllGenres() {
         List<Genre> genres = genreRepository.findAll();
         if (genres.isEmpty()) {
             throw new GenresNotFoundException();

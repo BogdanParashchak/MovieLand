@@ -6,7 +6,9 @@ import java.util.List;
 
 public interface MovieService {
 
-    List<Movie> findAll();
+    List<Movie> findAllMovies();
 
     List<Movie> findRandomMovies();
+
+    List<Movie> findMoviesByGenreId(int genreId);
 }

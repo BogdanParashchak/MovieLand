@@ -59,7 +59,7 @@ class GenreServiceImplTest {
         Mockito.when(genreRepository.findAll()).thenReturn(expectedGenres);
 
         //when
-        List<Genre> actualGenres = genreService.findAll();
+        List<Genre> actualGenres = genreService.findAllGenres();
 
         //then
         assertEquals(expectedGenres, actualGenres);
@@ -73,7 +73,7 @@ class GenreServiceImplTest {
         Mockito.when(genreRepository.findAll()).thenReturn(new ArrayList<>());
 
         //then
-        assertThrows(GenresNotFoundException.class, () -> genreService.findAll());
+        assertThrows(GenresNotFoundException.class, () -> genreService.findAllGenres());
         verify(genreRepository).findAll();
     }
 }

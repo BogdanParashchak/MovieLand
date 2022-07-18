@@ -19,6 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @TestInstance(PER_CLASS)
@@ -73,13 +74,13 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void givenListOfMovies_whenFindAll_thenListOfMoviesReturned() {
+    void givenListOfMovies_whenFindAllMovies_thenListOfMoviesReturned() {
 
         //prepare
-        Mockito.when(movieRepository.findAll()).thenReturn(expectedMovies);
+        when(movieRepository.findAll()).thenReturn(expectedMovies);
 
         //when
-        List<Movie> actualMovies = movieService.findAll();
+        List<Movie> actualMovies = movieService.findAllMovies();
 
         //then
         assertEquals(expectedMovies, actualMovies);
@@ -87,13 +88,13 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void givenEmptyListOfMovies_whenFindAll_thenMoviesNotFoundExceptionThrown() {
+    void givenEmptyListOfMovies_whenFindAllMovies_thenMoviesNotFoundExceptionThrown() {
 
         //prepare
-        Mockito.when(movieRepository.findAll()).thenReturn(new ArrayList<>());
+        when(movieRepository.findAll()).thenReturn(new ArrayList<>());
 
         //then
-        assertThrows(MoviesNotFoundException.class, () -> movieService.findAll());
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies());
         verify(movieRepository).findAll();
     }
 
@@ -127,7 +128,7 @@ class MovieServiceImplTest {
         movies.add(fourthMockMovie);
         movies.add(fifthMockMovie);
 
-        Mockito.when(movieRepository.findAll()).thenReturn(movies);
+        when(movieRepository.findAll()).thenReturn(movies);
 
         //when
         List<Movie> randomMovies = movieService.findRandomMovies();
@@ -142,10 +143,35 @@ class MovieServiceImplTest {
     void givenEmptyListOfMovies_whenFindRandomMovies_thenMoviesNotFoundExceptionThrown() {
 
         //prepare
-        Mockito.when(movieRepository.findAll()).thenReturn(new ArrayList<>());
+        when(movieRepository.findAll()).thenReturn(new ArrayList<>());
 
         //then
         assertThrows(MoviesNotFoundException.class, () -> movieService.findRandomMovies());
         verify(movieRepository).findAll();
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreId_thenMoviesReturned() {
+
+        //prepare
+        when(movieRepository.findMoviesByGenreId(1)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> moviesByGenreId = movieService.findMoviesByGenreId(1);
+
+        //then
+        assertEquals(expectedMovies, moviesByGenreId);
+        verify(movieRepository).findMoviesByGenreId(1);
+    }
+
+    @Test
+    void givenEmptyListOfMovies_whenFindMoviesByGenreId_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        when(movieRepository.findMoviesByGenreId(1)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1));
+        verify(movieRepository).findMoviesByGenreId(1);
     }
 }

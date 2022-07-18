@@ -45,7 +45,7 @@ public class GenreControllerTest {
                 .name("second_genre")
                 .build();
 
-        when(genreService.findAll()).thenReturn(List.of(firstMockGenre, secondMockGenre, thirdMockGenre));
+        when(genreService.findAllGenres()).thenReturn(List.of(firstMockGenre, secondMockGenre, thirdMockGenre));
 
         mockMvc.perform(get("/v1/genre")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,13 +62,13 @@ public class GenreControllerTest {
                 .andExpect(jsonPath("$.[2].id").value(3))
                 .andExpect(jsonPath("$.[2].name").value("second_genre"));
 
-        verify(genreService).findAll();
+        verify(genreService).findAllGenres();
     }
 
     @Test
     public void givenNoGenres_whenGetGenres_thenNotFoundStatusReturned() throws Exception {
 
-        when(genreService.findAll()).thenThrow(new GenresNotFoundException());
+        when(genreService.findAllGenres()).thenThrow(new GenresNotFoundException());
 
         mockMvc.perform(get("/v1/genre")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -77,6 +77,6 @@ public class GenreControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(status().reason("Genres not found"));
 
-        verify(genreService).findAll();
+        verify(genreService).findAllGenres();
     }
 }

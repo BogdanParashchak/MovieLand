@@ -18,6 +18,6 @@ public class GenreController {
 
     @GetMapping("/v1/genre")
     private List<Genre> findAllGenres() {
-        return genreService.findAll();
+        return genreService.findAllGenres();
     }
 }
