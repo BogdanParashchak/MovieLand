@@ -1,20 +1,25 @@
 package com.parashchak.movieland.service;
 
 import com.parashchak.movieland.entity.Movie;
+import com.parashchak.movieland.exception.BadRequestException;
 import com.parashchak.movieland.exception.MoviesNotFoundException;
 import com.parashchak.movieland.repository.MovieRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -74,31 +79,6 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void givenListOfMovies_whenFindAllMovies_thenListOfMoviesReturned() {
-
-        //prepare
-        when(movieRepository.findAll()).thenReturn(expectedMovies);
-
-        //when
-        List<Movie> actualMovies = movieService.findAllMovies();
-
-        //then
-        assertEquals(expectedMovies, actualMovies);
-        verify(movieRepository).findAll();
-    }
-
-    @Test
-    void givenEmptyListOfMovies_whenFindAllMovies_thenMoviesNotFoundExceptionThrown() {
-
-        //prepare
-        when(movieRepository.findAll()).thenReturn(new ArrayList<>());
-
-        //then
-        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies());
-        verify(movieRepository).findAll();
-    }
-
-    @Test
     void givenListOfMovies_whenFindRandomMovies_thenThreeRandomMoviesReturned() {
 
         //prepare
@@ -151,27 +131,301 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void givenListOfMovies_whenFindMoviesByGenreId_thenMoviesReturned() {
+    void givenListOfMovies_whenFindMoviesByGenreIdWithRequestParametersMapSizeMoreThanOne_thenBadRequestExceptionThrown() {
 
         //prepare
-        when(movieRepository.findMoviesByGenreId(1)).thenReturn(expectedMovies);
-
-        //when
-        List<Movie> moviesByGenreId = movieService.findMoviesByGenreId(1);
+        Map<String, String> requestMap = Map.of("rating", "desc", "price", "asc");
 
         //then
-        assertEquals(expectedMovies, moviesByGenreId);
-        verify(movieRepository).findMoviesByGenreId(1);
+        assertThrows(BadRequestException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
     }
 
     @Test
-    void givenEmptyListOfMovies_whenFindMoviesByGenreId_thenMoviesNotFoundExceptionThrown() {
+    void givenListOfMovies_whenFindMoviesByGenreIdAndEntitiesCountIsZero_thenMoviesNotFoundExceptionThrown() {
 
         //prepare
-        when(movieRepository.findMoviesByGenreId(1)).thenReturn(new ArrayList<>());
+        Map<String, String> requestMap = Map.of("rating", "desc");
+        when(movieRepository.count()).thenReturn(0L);
 
         //then
-        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1));
-        verify(movieRepository).findMoviesByGenreId(1);
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithNoRequestParameters_thenListOfMoviesReturned() {
+
+        //prepare
+        Map<String, String> requestMap = new HashMap<>();
+        when(movieRepository.count()).thenReturn(3L);
+        Pageable page = PageRequest.of(0, 3);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> moviesByGenreId = movieService.findMoviesByGenreId(1, requestMap);
+
+        //then
+        assertEquals(expectedMovies, moviesByGenreId);
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenEmptyListOfMovies_whenFindMoviesByGenreIdWithNoRequestParameters_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = new HashMap<>();
+        when(movieRepository.count()).thenReturn(3L);
+        Pageable page = PageRequest.of(0, 3);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithRequestParameters_thenSortedByRatingDescendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("rating", "desc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("rating").descending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findMoviesByGenreId(1, requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithRatingDescendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("rating", "desc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("rating").descending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithRequestParameters_thenSortedByPriceDescendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "desc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("price").descending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findMoviesByGenreId(1, requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithPriceDescendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "desc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("price").descending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithRequestParameters_thenSortedByPriceAscendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "asc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("price").ascending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findMoviesByGenreId(1, requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithPriceAscendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "asc");
+        Pageable page = PageRequest.of(0, 3, Sort.by("price").ascending());
+        when(movieRepository.count()).thenReturn(3L);
+        when(movieRepository.findMoviesByGenreId(1, page)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+        verify(movieRepository).count();
+        verify(movieRepository).findMoviesByGenreId(1, page);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindMoviesByGenreIdWithIncorrectRequestParameters_thenBadRequestExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "someSortingOrder");
+        when(movieRepository.count()).thenReturn(3L);
+
+        //then
+        assertThrows(BadRequestException.class, () -> movieService.findMoviesByGenreId(1, requestMap));
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithRequestParametersMapSizeMoreThanOne_thenBadRequestExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("rating", "desc", "price", "asc");
+
+        //then
+        assertThrows(BadRequestException.class, () -> movieService.findAllMovies(requestMap));
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithNoRequestParameters_thenListOfMoviesReturned() {
+
+        //prepare
+        Map<String, String> requestMap = new HashMap<>();
+        when(movieRepository.findAll()).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findAllMovies(requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).findAll();
+    }
+
+    @Test
+    void givenEmptyListOfMovies_whenFindAllMovies_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        List<Movie> movies = new ArrayList<>();
+        Map<String, String> requestMap = new HashMap<>();
+        when(movieRepository.findAll()).thenReturn(movies);
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies(requestMap));
+        verify(movieRepository).findAll();
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithRequestParameters_thenSortedByRatingDescendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("rating", "desc");
+        Sort sort = Sort.by("rating").descending();
+        when(movieRepository.findAll(sort)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findAllMovies(requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithRatingDescendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("rating", "desc");
+        Sort sort = Sort.by("rating").descending();
+        when(movieRepository.findAll(sort)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies(requestMap));
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithRequestParameters_thenSortedByPriceDescendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "desc");
+        Sort sort = Sort.by("price").descending();
+        when(movieRepository.findAll(sort)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findAllMovies(requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithPriceDescendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "desc");
+        Sort sort = Sort.by("price").descending();
+        when(movieRepository.findAll(sort)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies(requestMap));
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithRequestParameters_thenSortedByPriceAscendingListReturned() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "asc");
+        Sort sort = Sort.by("price").ascending();
+        when(movieRepository.findAll(sort)).thenReturn(expectedMovies);
+
+        //when
+        List<Movie> actualMovies = movieService.findAllMovies(requestMap);
+
+        //then
+        assertEquals(expectedMovies, actualMovies);
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithPriceAscendingParameterAndNoMoviesFound_thenMoviesNotFoundExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "asc");
+        Sort sort = Sort.by("price").ascending();
+        when(movieRepository.findAll(sort)).thenReturn(new ArrayList<>());
+
+        //then
+        assertThrows(MoviesNotFoundException.class, () -> movieService.findAllMovies(requestMap));
+        verify(movieRepository).findAll(sort);
+    }
+
+    @Test
+    void givenListOfMovies_whenFindAllMoviesWithIncorrectRequestParameters_thenBadRequestExceptionThrown() {
+
+        //prepare
+        Map<String, String> requestMap = Map.of("price", "someSortingOrder");
+
+        //then
+        assertThrows(BadRequestException.class, () -> movieService.findAllMovies(requestMap));
     }
 }
